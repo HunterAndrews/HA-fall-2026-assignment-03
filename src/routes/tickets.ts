@@ -96,23 +96,51 @@ router.patch('/:id/status', authMiddleware,async (req, res) => {   // update tic
 // TODO: Student implementation - Part 2: Time Log Routes
 // POST /tickets/:id/time
 router.post('/:id/time', (req, res) => {    // add time to ticket and send to client
-  const ticketId = req.params.id;
-  const time = req.body.time;
+  try {
+    const ticketId = Number(req.params.id);
+    const userId = res.locals.userId;
+    const {hours} = req.body;
+    // const time = req.body.time;
 
-  res.send(time);
+    res.status(201).json({  // send to client
+      ticket_id: ticketId,
+      user_id: userId,
+      hours,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to log time',
+    });
+  }
 });
 
 // GET /tickets/:id/time
-router.get('/:id/time', (req, res) => { // get time for ticket and send to client
-  const ticketId = req.params.id;
-  const time = req.body;
+// router.get('/:id/time', (req, res) => { // get time for ticket and send to client
+//   const ticketId = req.params.id;
+//   const time = req.body;
 
-  if (!time) {
-    res.status(404).send('Time not found');
-    return;
+//   if (!time) {
+//     res.status(404).send('Time not found');
+//     return;
+//   }
+
+//   res.send(time);
+// });
+router.get('/:id/time', async (req, res) => {
+  try {
+    const ticketId = Number(req.params.id);
+
+    const totalHours = await getTotalHoursForTicket(ticketId);
+
+    res.status(200).json({
+      ticket_id: ticketId,
+      total_hours: totalHours,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to retrieve time',
+    });
   }
-
-  res.send(time);
 });
 
 export default router;
